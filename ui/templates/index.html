@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OpenClaw Cloud Deployer</title>
+  <style>
+    /* ── Reset & Base ───────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      min-height: 100vh;
+      color: #1e293b;
+      padding: 2rem 1rem;
+    }
+
+    /* ── Layout ─────────────────────────────────────────────────── */
+    .shell {
+      max-width: 780px;
+      margin: 0 auto;
+    }
+
+    /* ── Header ─────────────────────────────────────────────────── */
+    .header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+    .header .logo {
+      font-size: 3.5rem;
+      line-height: 1;
+      margin-bottom: .5rem;
+      filter: drop-shadow(0 0 16px rgba(99,179,237,.5));
+    }
+    .header h1 {
+      font-size: 1.75rem;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -.5px;
+    }
+    .header p {
+      color: #94a3b8;
+      margin-top: .35rem;
+      font-size: .95rem;
+    }
+
+    /* ── Step Progress Bar ──────────────────────────────────────── */
+    .progress-bar {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      margin-bottom: 2rem;
+    }
+    .pb-step {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .3rem;
+      position: relative;
+    }
+    .pb-step .circle {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: .85rem;
+      background: #1e293b;
+      border: 2px solid #334155;
+      color: #64748b;
+      transition: all .3s;
+      position: relative;
+      z-index: 1;
+    }
+    .pb-step .label {
+      font-size: .7rem;
+      color: #64748b;
+      font-weight: 500;
+      white-space: nowrap;
+      transition: color .3s;
+    }
+    .pb-step.active .circle   { background: #3b82f6; border-color: #3b82f6; color: #fff; box-shadow: 0 0 0 4px rgba(59,130,246,.25); }
+    .pb-step.active .label    { color: #93c5fd; }
+    .pb-step.done .circle     { background: #10b981; border-color: #10b981; color: #fff; }
+    .pb-step.done .label      { color: #6ee7b7; }
+    .pb-connector {
+      width: 48px; height: 2px;
+      background: #334155;
+      margin-bottom: 1.35rem;
+      transition: background .3s;
+    }
+    .pb-connector.done { background: #10b981; }
+
+    /* ── Card ───────────────────────────────────────────────────── */
+    .card {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.4);
+      padding: 2.5rem 2.5rem 2rem;
+      animation: fadeUp .35s ease;
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0);    }
+    }
+
+    /* ── Step Visibility ────────────────────────────────────────── */
+    .step { display: none; }
+    .step.active { display: block; }
+
+    /* ── Typography ─────────────────────────────────────────────── */
+    .step-title {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: #0f172a;
+      margin-bottom: .4rem;
+    }
+    .step-subtitle {
+      color: #64748b;
+      font-size: .95rem;
+      margin-bottom: 1.75rem;
+      line-height: 1.55;
+    }
+
+    /* ── Buttons ────────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex; align-items: center; gap: .5rem;
+      padding: .75rem 1.75rem;
+      border-radius: 10px;
+      font-size: .95rem;
+      font-weight: 700;
+      border: none;
+      cursor: pointer;
+      transition: all .2s;
+      text-decoration: none;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(59,130,246,.4);
+    }
+    .btn-primary:hover  { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(59,130,246,.5); }
+    .btn-primary:active { transform: translateY(0); }
+    .btn-secondary {
+      background: #f1f5f9;
+      color: #475569;
+    }
+    .btn-secondary:hover { background: #e2e8f0; }
+    .btn-success {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(16,185,129,.35);
+    }
+    .btn-success:hover { transform: translateY(-1px); }
+    .btn:disabled { opacity: .5; cursor: not-allowed; transform: none !important; }
+
+    .btn-row {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-top: 2rem;
+      gap: 1rem;
+    }
+
+    /* ── Provider Cards ─────────────────────────────────────────── */
+    .providers {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .provider-card {
+      border: 2px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 1.25rem 1rem;
+      cursor: pointer;
+      transition: all .2s;
+      text-align: center;
+      position: relative;
+    }
+    .provider-card:hover { border-color: #93c5fd; background: #eff6ff; }
+    .provider-card.selected {
+      border-color: #3b82f6;
+      background: #eff6ff;
+      box-shadow: 0 0 0 3px rgba(59,130,246,.2);
+    }
+    .provider-card .icon { font-size: 2.25rem; margin-bottom: .5rem; }
+    .provider-card .pname {
+      font-weight: 700;
+      font-size: 1rem;
+      color: #0f172a;
+    }
+    .provider-card .pdesc {
+      font-size: .78rem;
+      color: #64748b;
+      margin-top: .25rem;
+    }
+    .provider-card .check {
+      position: absolute; top: .6rem; right: .6rem;
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      background: #3b82f6;
+      color: #fff;
+      font-size: .7rem;
+      display: none;
+      align-items: center; justify-content: center;
+    }
+    .provider-card.selected .check { display: flex; }
+
+    /* ── Form Elements ──────────────────────────────────────────── */
+    .form-group {
+      margin-bottom: 1.25rem;
+    }
+    .form-label {
+      display: block;
+      font-weight: 600;
+      font-size: .875rem;
+      color: #374151;
+      margin-bottom: .4rem;
+    }
+    .form-label .badge {
+      font-size: .7rem;
+      font-weight: 500;
+      background: #fef3c7;
+      color: #92400e;
+      padding: .1rem .4rem;
+      border-radius: 4px;
+      margin-left: .4rem;
+    }
+    .form-label .badge.optional {
+      background: #f0fdf4;
+      color: #166534;
+    }
+    .form-input, .form-select, .form-textarea {
+      width: 100%;
+      padding: .6rem .875rem;
+      border: 1.5px solid #d1d5db;
+      border-radius: 8px;
+      font-size: .9rem;
+      color: #111827;
+      background: #fff;
+      transition: border-color .2s, box-shadow .2s;
+      font-family: inherit;
+    }
+    .form-input:focus, .form-select:focus, .form-textarea:focus {
+      outline: none;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 3px rgba(59,130,246,.15);
+    }
+    .form-textarea { resize: vertical; min-height: 120px; font-family: monospace; font-size: .82rem; }
+    .form-hint {
+      font-size: .78rem;
+      color: #6b7280;
+      margin-top: .3rem;
+    }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1rem;
+    }
+
+    /* ── Size Cards ─────────────────────────────────────────────── */
+    .sizes {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: .75rem;
+      margin-bottom: 1.5rem;
+    }
+    .size-card {
+      border: 2px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 1rem .875rem;
+      cursor: pointer;
+      transition: all .2s;
+      position: relative;
+    }
+    .size-card:hover { border-color: #93c5fd; }
+    .size-card.selected { border-color: #3b82f6; background: #eff6ff; box-shadow: 0 0 0 3px rgba(59,130,246,.2); }
+    .size-card .size-name { font-weight: 700; font-size: .95rem; color: #0f172a; }
+    .size-card .size-spec { font-size: .78rem; color: #64748b; margin: .3rem 0; line-height: 1.4; }
+    .size-card .size-cost { font-size: .78rem; font-weight: 600; color: #059669; }
+    .size-card .rec-badge {
+      position: absolute; top: -8px; left: 50%; transform: translateX(-50%);
+      background: #3b82f6; color: #fff;
+      font-size: .65rem; font-weight: 700;
+      padding: .1rem .5rem;
+      border-radius: 10px;
+      white-space: nowrap;
+    }
+
+    /* ── Alert ──────────────────────────────────────────────────── */
+    .alert {
+      border-radius: 8px;
+      padding: .75rem 1rem;
+      font-size: .875rem;
+      display: flex;
+      gap: .5rem;
+      align-items: flex-start;
+      margin-bottom: 1.25rem;
+    }
+    .alert-info  { background: #eff6ff; border: 1px solid #bfdbfe; color: #1d4ed8; }
+    .alert-warn  { background: #fffbeb; border: 1px solid #fde68a; color: #92400e; }
+    .alert-error { background: #fef2f2; border: 1px solid #fecaca; color: #b91c1c; }
+    .alert-ok    { background: #f0fdf4; border: 1px solid #bbf7d0; color: #166534; }
+
+    /* ── Deployment Log ─────────────────────────────────────────── */
+    .deploy-phases {
+      display: flex;
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+    .phase-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .35rem;
+      flex: 1;
+      opacity: .35;
+      transition: opacity .4s;
+    }
+    .phase-item.active { opacity: 1; }
+    .phase-item.done   { opacity: .75; }
+    .phase-icon {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem;
+      background: #f1f5f9;
+      border: 2px solid #e2e8f0;
+      transition: all .4s;
+    }
+    .phase-item.active .phase-icon {
+      background: #eff6ff;
+      border-color: #3b82f6;
+      box-shadow: 0 0 0 4px rgba(59,130,246,.15);
+    }
+    .phase-item.done .phase-icon   { background: #f0fdf4; border-color: #10b981; }
+    .phase-label { font-size: .72rem; font-weight: 600; color: #475569; text-align: center; }
+
+    .log-box {
+      background: #0f172a;
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      font-family: "SF Mono", "Fira Code", Consolas, monospace;
+      font-size: .8rem;
+      color: #94a3b8;
+      max-height: 260px;
+      overflow-y: auto;
+      line-height: 1.6;
+    }
+    .log-box .log-line { display: block; }
+    .log-box .log-line.ok    { color: #4ade80; }
+    .log-box .log-line.err   { color: #f87171; }
+    .log-box .log-line.info  { color: #60a5fa; }
+
+    .spinner {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid rgba(59,130,246,.3);
+      border-top-color: #3b82f6;
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      vertical-align: middle;
+      margin-right: .3rem;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Success Screen ─────────────────────────────────────────── */
+    .success-hero {
+      text-align: center;
+      margin-bottom: 1.75rem;
+    }
+    .success-hero .big-icon { font-size: 4rem; }
+    .success-hero h2 { font-size: 1.6rem; font-weight: 800; color: #065f46; margin-top: .5rem; }
+    .success-hero p  { color: #6b7280; margin-top: .3rem; }
+
+    .details-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .75rem;
+      margin-bottom: 1.5rem;
+    }
+    .detail-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      padding: .875rem 1rem;
+    }
+    .detail-card .dc-label { font-size: .72rem; font-weight: 600; color: #94a3b8; text-transform: uppercase; letter-spacing: .05em; }
+    .detail-card .dc-value { font-size: .95rem; font-weight: 700; color: #0f172a; margin-top: .2rem; word-break: break-all; }
+
+    .ssh-box {
+      background: #0f172a;
+      border-radius: 10px;
+      padding: 1rem 1.25rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 1.5rem;
+    }
+    .ssh-box code { font-family: monospace; color: #7dd3fc; font-size: .9rem; }
+    .copy-btn {
+      background: #1e3a5f;
+      border: none;
+      color: #93c5fd;
+      border-radius: 6px;
+      padding: .3rem .75rem;
+      font-size: .78rem;
+      cursor: pointer;
+      white-space: nowrap;
+      font-weight: 600;
+      transition: background .2s;
+    }
+    .copy-btn:hover { background: #1d4ed8; color: #fff; }
+
+    .next-steps {
+      background: #fffbeb;
+      border: 1px solid #fde68a;
+      border-radius: 10px;
+      padding: 1.1rem 1.25rem;
+    }
+    .next-steps h3 { font-size: .9rem; font-weight: 700; color: #92400e; margin-bottom: .6rem; }
+    .next-steps ol { padding-left: 1.2rem; }
+    .next-steps li { font-size: .875rem; color: #78350f; margin-bottom: .4rem; line-height: 1.5; }
+
+    /* ── Key Viewer ─────────────────────────────────────────────── */
+    .key-section {
+      margin-top: 1rem;
+    }
+    .key-section details summary {
+      cursor: pointer;
+      color: #3b82f6;
+      font-size: .875rem;
+      font-weight: 600;
+      padding: .4rem 0;
+      user-select: none;
+    }
+    .key-section pre {
+      background: #0f172a;
+      color: #7dd3fc;
+      font-family: monospace;
+      font-size: .75rem;
+      padding: 1rem;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin-top: .5rem;
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+
+    /* ── Validation Indicator ───────────────────────────────────── */
+    .val-row {
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      font-size: .875rem;
+      margin-top: .75rem;
+    }
+    .val-dot {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .val-dot.ok  { background: #10b981; }
+    .val-dot.err { background: #ef4444; }
+    .val-dot.spin { border: 2px solid #e2e8f0; border-top-color: #3b82f6; animation: spin .7s linear infinite; background: transparent; }
+
+    /* ── Responsive ─────────────────────────────────────────────── */
+    @media (max-width: 600px) {
+      .card { padding: 1.5rem 1.25rem 1.25rem; }
+      .providers { grid-template-columns: 1fr 1fr; }
+      .sizes { grid-template-columns: 1fr; }
+      .details-grid { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+      .deploy-phases { gap: .75rem; }
+      .pb-connector { width: 28px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="shell">
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">🦞</div>
+    <h1>OpenClaw Cloud Deployer</h1>
+    <p>Deploy your own AI agent to the cloud — no technical skills required.</p>
+  </div>
+
+  <!-- Progress Bar -->
+  <div class="progress-bar" id="progressBar">
+    <div class="pb-step" id="pb1"><div class="circle">1</div><div class="label">Welcome</div></div>
+    <div class="pb-connector" id="conn1"></div>
+    <div class="pb-step" id="pb2"><div class="circle">2</div><div class="label">Cloud</div></div>
+    <div class="pb-connector" id="conn2"></div>
+    <div class="pb-step" id="pb3"><div class="circle">3</div><div class="label">Login</div></div>
+    <div class="pb-connector" id="conn3"></div>
+    <div class="pb-step" id="pb4"><div class="circle">4</div><div class="label">Configure</div></div>
+    <div class="pb-connector" id="conn4"></div>
+    <div class="pb-step" id="pb5"><div class="circle">5</div><div class="label">Deploy</div></div>
+    <div class="pb-connector" id="conn5"></div>
+    <div class="pb-step" id="pb6"><div class="circle">✓</div><div class="label">Done!</div></div>
+  </div>
+
+  <!-- Card -->
+  <div class="card">
+
+    <!-- ── Step 1: Welcome ── -->
+    <div class="step active" id="step1">
+      <div style="text-align:center; padding: 1rem 0 1.5rem;">
+        <div style="font-size:5rem; margin-bottom:1rem;">🚀</div>
+        <div class="step-title" style="font-size:1.75rem;">Welcome!</div>
+        <p class="step-subtitle" style="max-width:460px; margin:0 auto 1.5rem;">
+          This wizard will walk you through deploying <strong>OpenClaw</strong> — a powerful AI agent —
+          to a cloud server. It takes about <strong>10 minutes</strong> and requires no coding.
+        </p>
+        <div class="alert alert-info" style="max-width:460px; margin:0 auto 1.75rem; text-align:left;">
+          <span>ℹ️</span>
+          <span>You'll need a <strong>cloud account</strong> (AWS, Google Cloud, Azure, or DigitalOcean)
+          and an <strong>AI API key</strong> (OpenAI, Anthropic, etc.).</span>
+        </div>
+        <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:1rem; margin-bottom:2rem;">
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:.875rem 1.25rem; text-align:center; min-width:140px;">
+            <div style="font-size:1.5rem;">☁️</div>
+            <div style="font-weight:700; font-size:.875rem; color:#0f172a; margin-top:.3rem;">Cloud Account</div>
+            <div style="font-size:.75rem; color:#64748b;">AWS / GCP / Azure / DO</div>
+          </div>
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:.875rem 1.25rem; text-align:center; min-width:140px;">
+            <div style="font-size:1.5rem;">🔑</div>
+            <div style="font-weight:700; font-size:.875rem; color:#0f172a; margin-top:.3rem;">AI API Key</div>
+            <div style="font-size:.75rem; color:#64748b;">OpenAI / Anthropic / etc.</div>
+          </div>
+          <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:10px; padding:.875rem 1.25rem; text-align:center; min-width:140px;">
+            <div style="font-size:1.5rem;">⏱️</div>
+            <div style="font-weight:700; font-size:.875rem; color:#0f172a; margin-top:.3rem;">~10 Minutes</div>
+            <div style="font-size:.75rem; color:#64748b;">Fully automated</div>
+          </div>
+        </div>
+        <button class="btn btn-primary" onclick="goTo(2)" style="font-size:1.05rem; padding:1rem 2.5rem;">
+          Let's get started →
+        </button>
+      </div>
+    </div>
+
+    <!-- ── Step 2: Choose Provider ── -->
+    <div class="step" id="step2">
+      <div class="step-title">Where do you want to host OpenClaw?</div>
+      <p class="step-subtitle">Pick the cloud provider you already have an account with. Don't have one? <a href="https://aws.amazon.com/free/" target="_blank" style="color:#3b82f6;">AWS Free Tier</a> is a great free option.</p>
+
+      <div class="providers">
+        <div class="provider-card" data-provider="aws" onclick="selectProvider(this)">
+          <div class="check">✓</div>
+          <div class="icon">🟠</div>
+          <div class="pname">Amazon AWS</div>
+          <div class="pdesc">World's largest cloud. Great free tier for new accounts.</div>
+        </div>
+        <div class="provider-card" data-provider="gcp" onclick="selectProvider(this)">
+          <div class="check">✓</div>
+          <div class="icon">🔵</div>
+          <div class="pname">Google Cloud</div>
+          <div class="pdesc">Fast global network. $300 free credits for new users.</div>
+        </div>
+        <div class="provider-card" data-provider="azure" onclick="selectProvider(this)">
+          <div class="check">✓</div>
+          <div class="icon">🟦</div>
+          <div class="pname">Microsoft Azure</div>
+          <div class="pdesc">Great for businesses already on Microsoft products.</div>
+        </div>
+        <div class="provider-card" data-provider="digitalocean" onclick="selectProvider(this)">
+          <div class="check">✓</div>
+          <div class="icon">🌊</div>
+          <div class="pname">DigitalOcean</div>
+          <div class="pdesc">Simplest setup. Transparent, predictable pricing.</div>
+        </div>
+      </div>
+
+      <div id="providerError" class="alert alert-error" style="display:none;">
+        <span>⚠️</span><span>Please select a cloud provider to continue.</span>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goTo(1)">← Back</button>
+        <button class="btn btn-primary" onclick="nextToCredentials()">Next: Enter credentials →</button>
+      </div>
+    </div>
+
+    <!-- ── Step 3: Credentials ── -->
+    <div class="step" id="step3">
+      <div class="step-title">Connect to your cloud account</div>
+      <p class="step-subtitle" id="credSubtitle">Enter your credentials so OpenClaw can create a server on your behalf.</p>
+
+      <!-- AWS Credentials -->
+      <div id="creds-aws" class="creds-panel" style="display:none;">
+        <div class="alert alert-info">
+          <span>🔒</span>
+          <span>Your credentials are sent directly to the cloud provider and never stored by this tool.
+          We recommend creating a dedicated IAM user with <strong>EC2 full access</strong> only.</span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">AWS Access Key ID</label>
+          <input class="form-input" id="aws_access_key" type="text" placeholder="AKIAIOSFODNN7EXAMPLE" autocomplete="off" />
+          <div class="form-hint">Found in AWS Console → IAM → Your user → Security credentials</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">AWS Secret Access Key</label>
+          <input class="form-input" id="aws_secret_key" type="password" placeholder="wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY" autocomplete="off" />
+        </div>
+      </div>
+
+      <!-- GCP Credentials -->
+      <div id="creds-gcp" class="creds-panel" style="display:none;">
+        <div class="alert alert-info">
+          <span>🔒</span>
+          <span>Paste your <strong>Service Account JSON key</strong> below.
+          Create one in Google Cloud Console → IAM → Service Accounts → Create Key → JSON.</span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Service Account JSON</label>
+          <textarea class="form-textarea" id="gcp_sa_json" placeholder='{ "type": "service_account", "project_id": "my-project", ... }'></textarea>
+          <div class="form-hint">The JSON file downloaded when you create a service account key.</div>
+        </div>
+      </div>
+
+      <!-- Azure Credentials -->
+      <div id="creds-azure" class="creds-panel" style="display:none;">
+        <div class="alert alert-info">
+          <span>🔒</span>
+          <span>You'll need an <strong>App Registration (service principal)</strong> in Azure Active Directory
+          with <em>Contributor</em> access on your subscription.</span>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Client ID (Application ID)</label>
+            <input class="form-input" id="az_client_id" type="text" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" autocomplete="off" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Client Secret</label>
+            <input class="form-input" id="az_client_secret" type="password" placeholder="Your app secret value" autocomplete="off" />
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Tenant ID</label>
+            <input class="form-input" id="az_tenant_id" type="text" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" autocomplete="off" />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Subscription ID</label>
+            <input class="form-input" id="az_subscription_id" type="text" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx" autocomplete="off" />
+          </div>
+        </div>
+      </div>
+
+      <!-- DigitalOcean Credentials -->
+      <div id="creds-digitalocean" class="creds-panel" style="display:none;">
+        <div class="alert alert-info">
+          <span>🔒</span>
+          <span>Create a Personal Access Token in DigitalOcean → API → Generate New Token.
+          Enable <strong>Write</strong> scope.</span>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Personal Access Token</label>
+          <input class="form-input" id="do_token" type="password" placeholder="dop_v1_xxxxxxxxxxxx" autocomplete="off" />
+        </div>
+      </div>
+
+      <!-- Validation result -->
+      <div id="validationResult" style="display:none;"></div>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goTo(2)">← Back</button>
+        <button class="btn btn-primary" id="validateBtn" onclick="validateAndNext()">
+          Verify & Continue →
+        </button>
+      </div>
+    </div>
+
+    <!-- ── Step 4: Configure ── -->
+    <div class="step" id="step4">
+      <div class="step-title">Configure your server</div>
+      <p class="step-subtitle">Choose a size and region for your cloud server, and optionally add your AI API key so OpenClaw starts ready to use.</p>
+
+      <!-- VM Size -->
+      <div style="margin-bottom:1rem;">
+        <div class="form-label" style="margin-bottom:.6rem;">Server size</div>
+        <div class="sizes" id="sizeCards">
+          <div class="size-card" data-size="small" onclick="selectSize(this)">
+            <div class="size-name">🔹 Small</div>
+            <div class="size-spec">2 vCPU · 4 GB RAM<br>Good for testing</div>
+            <div class="size-cost">~$30–40 / month</div>
+          </div>
+          <div class="size-card selected" data-size="medium" onclick="selectSize(this)">
+            <div class="rec-badge">⭐ Recommended</div>
+            <div class="size-name">🔷 Medium</div>
+            <div class="size-spec">4 vCPU · 8 GB RAM<br>Ideal for most uses</div>
+            <div class="size-cost">~$60–80 / month</div>
+          </div>
+          <div class="size-card" data-size="large" onclick="selectSize(this)">
+            <div class="size-name">🔶 Large</div>
+            <div class="size-spec">8 vCPU · 16 GB RAM<br>Heavy workloads</div>
+            <div class="size-cost">~$120–160 / month</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">Region <span class="badge">Where to host it</span></label>
+          <select class="form-select" id="regionSelect">
+            <option value="">Loading regions…</option>
+          </select>
+          <div class="form-hint">Pick a region close to where most users will be.</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Server name</label>
+          <input class="form-input" id="vmName" type="text" value="openclaw-server" placeholder="openclaw-server"
+            oninput="sanitizeName(this)" />
+          <div class="form-hint">Lowercase letters, numbers and hyphens only.</div>
+        </div>
+      </div>
+
+      <hr style="border:none; border-top:1px solid #f1f5f9; margin: 1.25rem 0;">
+
+      <div style="margin-bottom: .5rem;">
+        <div class="form-label">AI API key <span class="badge optional">Optional but recommended</span></div>
+        <p class="form-hint" style="margin-bottom:.75rem;">
+          Pre-configure OpenClaw with your API key so the agent is ready immediately after deployment.
+          You can also add this manually later.
+        </p>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">API Key</label>
+        <input class="form-input" id="aiApiKey" type="password" placeholder="sk-… or sk-ant-…" autocomplete="off" />
+        <div class="form-hint">OpenAI key starts with <code>sk-</code> · Anthropic key starts with <code>sk-ant-</code></div>
+      </div>
+
+      <div class="form-row">
+        <div class="form-group">
+          <label class="form-label">API Base URL <span class="badge optional">Optional</span></label>
+          <input class="form-input" id="aiBaseUrl" type="text" placeholder="https://api.openai.com/v1" />
+          <div class="form-hint">Leave blank for OpenAI. Change for Anthropic or local models.</div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Model <span class="badge optional">Optional</span></label>
+          <input class="form-input" id="aiModel" type="text" placeholder="gpt-4o-mini" />
+          <div class="form-hint">e.g. gpt-4o, claude-sonnet-4-6, llama3</div>
+        </div>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-secondary" onclick="goTo(3)">← Back</button>
+        <button class="btn btn-primary" onclick="startDeployment()">🚀 Deploy OpenClaw →</button>
+      </div>
+    </div>
+
+    <!-- ── Step 5: Deploying ── -->
+    <div class="step" id="step5">
+      <div class="step-title">Deploying OpenClaw…</div>
+      <p class="step-subtitle">Sit back and relax — everything is being set up automatically. This usually takes 5–10 minutes.</p>
+
+      <!-- Phase indicators -->
+      <div class="deploy-phases" id="deployPhases">
+        <div class="phase-item" id="phase-Validating credentials">
+          <div class="phase-icon">🔐</div>
+          <div class="phase-label">Validating Credentials</div>
+        </div>
+        <div class="phase-item" id="phase-Launching VM">
+          <div class="phase-icon">☁️</div>
+          <div class="phase-label">Launching VM</div>
+        </div>
+        <div class="phase-item" id="phase-Installing OpenClaw">
+          <div class="phase-icon">📦</div>
+          <div class="phase-label">Installing OpenClaw</div>
+        </div>
+        <div class="phase-item" id="phase-complete">
+          <div class="phase-icon">✅</div>
+          <div class="phase-label">Ready!</div>
+        </div>
+      </div>
+
+      <!-- Live log -->
+      <div class="log-box" id="deployLog">
+        <span class="log-line info">Starting deployment…</span>
+      </div>
+
+      <div id="deployError" class="alert alert-error" style="display:none; margin-top:1rem;">
+        <span>❌</span><span id="deployErrorMsg"></span>
+      </div>
+    </div>
+
+    <!-- ── Step 6: Success ── -->
+    <div class="step" id="step6">
+      <div class="success-hero">
+        <div class="big-icon">🎉</div>
+        <h2>OpenClaw is live!</h2>
+        <p>Your AI agent is deployed and running in the cloud.</p>
+      </div>
+
+      <div class="details-grid" id="successDetails">
+        <!-- filled by JS -->
+      </div>
+
+      <div style="margin-bottom:.5rem; font-weight:600; font-size:.875rem; color:#374151;">SSH Access</div>
+      <div class="ssh-box">
+        <code id="sshCommand">—</code>
+        <button class="copy-btn" onclick="copySSH()">📋 Copy</button>
+      </div>
+
+      <div class="next-steps">
+        <h3>📋 Next steps</h3>
+        <ol>
+          <li>SSH into your server using the command above.</li>
+          <li>If you didn't enter an API key, edit <code>/opt/openclaw/.env</code> and add your key.</li>
+          <li>Start the agent: <code>sudo systemctl start openclaw</code></li>
+          <li>View logs: <code>sudo journalctl -u openclaw -f</code></li>
+          <li>The install log is at: <code>/var/log/openclaw-install.log</code></li>
+        </ol>
+      </div>
+
+      <div class="key-section" id="keySection" style="display:none;">
+        <details>
+          <summary>🔑 Show SSH private key (save this — you won't see it again!)</summary>
+          <pre id="privateKeyBox"></pre>
+          <button class="copy-btn" style="margin-top:.5rem;" onclick="copyKey()">📋 Copy key</button>
+        </details>
+      </div>
+
+      <div class="btn-row" style="justify-content:center; margin-top:1.75rem;">
+        <button class="btn btn-success" onclick="startOver()">Deploy another server</button>
+      </div>
+    </div>
+
+  </div><!-- /card -->
+</div><!-- /shell -->
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   State
+═══════════════════════════════════════════════════════════════ */
+const state = {
+  currentStep: 1,
+  provider: null,
+  credentials: {},
+  vmSize: 'medium',
+  region: null,
+  vmName: 'openclaw-server',
+  jobId: null,
+  pollTimer: null,
+};
+
+/* ═══════════════════════════════════════════════════════════════
+   Navigation
+═══════════════════════════════════════════════════════════════ */
+function goTo(n) {
+  document.getElementById('step' + state.currentStep).classList.remove('active');
+  document.getElementById('step' + n).classList.add('active');
+  state.currentStep = n;
+  updateProgressBar(n);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function updateProgressBar(active) {
+  for (let i = 1; i <= 6; i++) {
+    const el = document.getElementById('pb' + i);
+    const conn = document.getElementById('conn' + i);
+    el.classList.remove('active', 'done');
+    if (conn) conn.classList.remove('done');
+
+    if (i < active) { el.classList.add('done'); if (conn) conn.classList.add('done'); }
+    else if (i === active) el.classList.add('active');
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Step 2 — Provider selection
+═══════════════════════════════════════════════════════════════ */
+function selectProvider(card) {
+  document.querySelectorAll('.provider-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  state.provider = card.dataset.provider;
+  document.getElementById('providerError').style.display = 'none';
+}
+
+function nextToCredentials() {
+  if (!state.provider) {
+    document.getElementById('providerError').style.display = 'flex';
+    return;
+  }
+  showCredentials(state.provider);
+  goTo(3);
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Step 3 — Credentials
+═══════════════════════════════════════════════════════════════ */
+const providerNames = { aws: 'Amazon AWS', gcp: 'Google Cloud', azure: 'Microsoft Azure', digitalocean: 'DigitalOcean' };
+
+function showCredentials(provider) {
+  document.querySelectorAll('.creds-panel').forEach(p => p.style.display = 'none');
+  const panel = document.getElementById('creds-' + provider);
+  if (panel) panel.style.display = 'block';
+  document.getElementById('credSubtitle').textContent =
+    `Enter your ${providerNames[provider]} credentials so OpenClaw Deployer can create a server on your behalf.`;
+  document.getElementById('validationResult').style.display = 'none';
+}
+
+function buildCredentials() {
+  const p = state.provider;
+  if (p === 'aws') return {
+    access_key: document.getElementById('aws_access_key').value.trim(),
+    secret_key: document.getElementById('aws_secret_key').value.trim(),
+  };
+  if (p === 'gcp') return {
+    service_account_json: document.getElementById('gcp_sa_json').value.trim(),
+  };
+  if (p === 'azure') return {
+    client_id:       document.getElementById('az_client_id').value.trim(),
+    client_secret:   document.getElementById('az_client_secret').value.trim(),
+    tenant_id:       document.getElementById('az_tenant_id').value.trim(),
+    subscription_id: document.getElementById('az_subscription_id').value.trim(),
+  };
+  if (p === 'digitalocean') return {
+    api_token: document.getElementById('do_token').value.trim(),
+  };
+  return {};
+}
+
+async function validateAndNext() {
+  const creds = buildCredentials();
+  const empty = Object.values(creds).some(v => !v);
+  if (empty) {
+    showValResult(false, 'Please fill in all required fields.');
+    return;
+  }
+
+  const btn = document.getElementById('validateBtn');
+  btn.disabled = true;
+  btn.innerHTML = '<span class="spinner"></span> Verifying…';
+  showValResult('loading', 'Connecting to ' + providerNames[state.provider] + '…');
+
+  try {
+    const resp = await fetch('/api/validate-credentials', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ provider: state.provider, credentials: creds }),
+    });
+    const data = await resp.json();
+
+    if (data.valid) {
+      state.credentials = creds;
+      showValResult(true, data.message || 'Credentials verified!');
+      setTimeout(() => {
+        loadRegions();
+        goTo(4);
+      }, 900);
+    } else {
+      showValResult(false, data.message || 'Credential validation failed.');
+    }
+  } catch (err) {
+    showValResult(false, 'Could not reach the deployment service. Is the server running?');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = 'Verify & Continue →';
+  }
+}
+
+function showValResult(ok, msg) {
+  const el = document.getElementById('validationResult');
+  el.style.display = 'block';
+  if (ok === 'loading') {
+    el.innerHTML = `<div class="val-row"><div class="val-dot spin"></div><span>${msg}</span></div>`;
+  } else if (ok) {
+    el.innerHTML = `<div class="alert alert-ok" style="margin:0;"><span>✅</span><span>${msg}</span></div>`;
+  } else {
+    el.innerHTML = `<div class="alert alert-error" style="margin:0;"><span>❌</span><span>${msg}</span></div>`;
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Step 4 — Configure
+═══════════════════════════════════════════════════════════════ */
+function selectSize(card) {
+  document.querySelectorAll('.size-card').forEach(c => c.classList.remove('selected'));
+  card.classList.add('selected');
+  state.vmSize = card.dataset.size;
+}
+
+function sanitizeName(input) {
+  input.value = input.value.toLowerCase().replace(/[^a-z0-9-]/g, '-').replace(/^-+|-+$/g, '');
+}
+
+async function loadRegions() {
+  const sel = document.getElementById('regionSelect');
+  sel.innerHTML = '<option value="">Loading…</option>';
+  try {
+    const resp = await fetch('/api/regions?provider=' + state.provider);
+    const data = await resp.json();
+    sel.innerHTML = '';
+    (data.regions || []).forEach(r => {
+      const opt = document.createElement('option');
+      opt.value = r.id;
+      opt.textContent = r.name + ' (' + r.id + ')';
+      sel.appendChild(opt);
+    });
+    if (sel.options.length > 0) sel.selectedIndex = 0;
+  } catch {
+    sel.innerHTML = '<option value="us-east-1">US East (default)</option>';
+  }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Step 5 — Deploy
+═══════════════════════════════════════════════════════════════ */
+async function startDeployment() {
+  const vmName = document.getElementById('vmName').value.trim() || 'openclaw-server';
+  const region = document.getElementById('regionSelect').value;
+  if (!region) { alert('Please select a region.'); return; }
+
+  state.vmName = vmName;
+  state.region = region;
+
+  goTo(5);
+  resetDeployUI();
+
+  const payload = {
+    provider: state.provider,
+    credentials: state.credentials,
+    region: state.region,
+    vm_size: state.vmSize,
+    vm_name: state.vmName,
+    openclaw_api_key: document.getElementById('aiApiKey').value.trim(),
+    openclaw_base_url: document.getElementById('aiBaseUrl').value.trim(),
+    openclaw_model: document.getElementById('aiModel').value.trim(),
+  };
+
+  try {
+    const resp = await fetch('/api/deploy', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const data = await resp.json();
+    state.jobId = data.job_id;
+    state.pollTimer = setInterval(pollStatus, 2500);
+  } catch (err) {
+    showDeployError('Could not contact the deployment service. Is the UI server running?');
+  }
+}
+
+function resetDeployUI() {
+  document.getElementById('deployLog').innerHTML = '<span class="log-line info">Starting deployment…</span>';
+  document.getElementById('deployError').style.display = 'none';
+  document.querySelectorAll('.phase-item').forEach(p => { p.classList.remove('active', 'done'); });
+}
+
+let lastLogCount = 0;
+
+async function pollStatus() {
+  if (!state.jobId) return;
+  try {
+    const resp = await fetch('/api/deploy-status/' + state.jobId);
+    const data = await resp.json();
+
+    // Update phases
+    const phaseMap = {
+      'Validating credentials': 0,
+      'Launching VM': 1,
+      'Installing OpenClaw': 2,
+      'complete': 3,
+    };
+    const phases = document.querySelectorAll('.phase-item');
+    const currentIdx = phaseMap[data.phase] ?? -1;
+    phases.forEach((p, i) => {
+      p.classList.remove('active', 'done');
+      if (i < currentIdx) p.classList.add('done');
+      else if (i === currentIdx) p.classList.add('active');
+    });
+
+    // Update log
+    const logEl = document.getElementById('deployLog');
+    const logs = data.logs || [];
+    if (logs.length > lastLogCount) {
+      const newLines = logs.slice(lastLogCount);
+      newLines.forEach(line => {
+        const span = document.createElement('span');
+        span.className = 'log-line' +
+          (line.startsWith('✓') ? ' ok' : line.startsWith('✗') ? ' err' : line.startsWith('  ') ? '' : ' info');
+        span.textContent = line;
+        logEl.appendChild(document.createElement('br'));
+        logEl.appendChild(span);
+      });
+      lastLogCount = logs.length;
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    if (data.status === 'complete') {
+      clearInterval(state.pollTimer);
+      setTimeout(() => showSuccess(data), 800);
+    } else if (data.status === 'error') {
+      clearInterval(state.pollTimer);
+      showDeployError(data.error || 'An unexpected error occurred.');
+    }
+  } catch (err) {
+    // Transient network hiccup — keep polling
+  }
+}
+
+function showDeployError(msg) {
+  document.getElementById('deployError').style.display = 'flex';
+  document.getElementById('deployErrorMsg').textContent = msg;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   Step 6 — Success
+═══════════════════════════════════════════════════════════════ */
+function showSuccess(data) {
+  const details = [
+    { label: 'Provider', value: providerNames[data.provider] || data.provider },
+    { label: 'Region',   value: data.region },
+    { label: 'VM Name',  value: data.vm_name },
+    { label: 'VM / Instance ID', value: data.vm_id },
+    { label: 'Public IP', value: data.public_ip },
+    { label: 'SSH User', value: data.ssh_user },
+  ];
+
+  const grid = document.getElementById('successDetails');
+  grid.innerHTML = details.map(d => `
+    <div class="detail-card">
+      <div class="dc-label">${d.label}</div>
+      <div class="dc-value">${d.value || '—'}</div>
+    </div>
+  `).join('');
+
+  const sshCmd = data.ssh_command || `ssh ${data.ssh_user}@${data.public_ip}`;
+  document.getElementById('sshCommand').textContent = sshCmd;
+
+  if (data.ssh_key) {
+    document.getElementById('keySection').style.display = 'block';
+    document.getElementById('privateKeyBox').textContent = data.ssh_key;
+  }
+
+  goTo(6);
+}
+
+function copySSH() {
+  const cmd = document.getElementById('sshCommand').textContent;
+  navigator.clipboard.writeText(cmd).then(() => {
+    const btn = document.querySelector('.ssh-box .copy-btn');
+    btn.textContent = '✅ Copied!';
+    setTimeout(() => { btn.textContent = '📋 Copy'; }, 2000);
+  });
+}
+
+function copyKey() {
+  const key = document.getElementById('privateKeyBox').textContent;
+  navigator.clipboard.writeText(key).then(() => {
+    alert('Private key copied to clipboard. Save it somewhere safe!');
+  });
+}
+
+function startOver() {
+  state.currentStep = 1;
+  state.provider = null;
+  state.credentials = {};
+  state.vmSize = 'medium';
+  state.region = null;
+  state.jobId = null;
+  lastLogCount = 0;
+  if (state.pollTimer) clearInterval(state.pollTimer);
+  document.querySelectorAll('.provider-card').forEach(c => c.classList.remove('selected'));
+  goTo(1);
+}
+
+/* ── Init ── */
+updateProgressBar(1);
+</script>
+</body>
+</html>

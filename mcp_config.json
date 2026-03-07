@@ -5,7 +5,7 @@
       "args": [
         "-y",
         "@modelcontextprotocol/server-filesystem",
-        "/Users/zehan.teoh"
+        "/opt/openclaw"
       ]
     },
     "sqlite": {
@@ -15,6 +15,13 @@
         "@modelcontextprotocol/server-sqlite",
         "openclaw_data.db"
       ]
+    },
+    "cloud-deployer": {
+      "command": "python3",
+      "args": [
+        "mcp_servers/cloud_deployer.py"
+      ],
+      "description": "Cloud VM deployment server — supports AWS, GCP, Azure, DigitalOcean"
     }
   }
 }
