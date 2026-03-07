@@ -1,4 +1,12 @@
+# Core agent
 openai>=1.0.0
 python-dotenv
 mcp
 httpx>=0.27.2
+
+# Deployment UI
+flask>=3.0.0
+flask-cors>=4.0.0
+
+# AWS support (optional — install separately if needed)
+# boto3>=1.34.0
