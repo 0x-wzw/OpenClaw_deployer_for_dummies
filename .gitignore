@@ -1,0 +1,10 @@
+
+# Runtime data
+.env
+sessions/*.jsonl
+queue/*.jsonl
+queue/*.tmp
+venv/
+__pycache__/
+*.pyc
+.DS_Store

@@ -1,0 +1,20 @@
+[
+  {
+    "task": "heartbeat",
+    "description": "Log that the agent is alive",
+    "interval_seconds": 60,
+    "skill": "heartbeat"
+  },
+  {
+    "task": "session_compaction",
+    "description": "Compress sessions older than 7 days",
+    "interval_seconds": 86400,
+    "skill": "session_summary"
+  },
+  {
+    "task": "queue_flush",
+    "description": "Retry any pending queue items",
+    "interval_seconds": 30,
+    "skill": "queue_status"
+  }
+]
