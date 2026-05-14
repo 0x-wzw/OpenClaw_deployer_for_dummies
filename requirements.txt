@@ -1,5 +1,5 @@
 # Core agent
-openai>=1.0.0
+openai>=2.36.0
 python-dotenv
 mcp
 httpx>=0.27.2
