@@ -1,0 +1,16 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+jobs:
+  ci:
+    uses: 0x-wzw/ci-cd-templates/.github/workflows/python-standard.yml@main
+    with:
+      python-version: '3.11'
+      has-docker: false
+      nix-flake: false
+    secrets:
+      inherit
+
