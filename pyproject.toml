@@ -1,0 +1,14 @@
+[project]
+name = "openclaw-deployer-for-dummies"
+version = "1.0.0"
+description = "OpenClaw deployment guide"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest", "ruff"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
