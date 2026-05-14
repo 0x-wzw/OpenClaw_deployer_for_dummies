@@ -286,4 +286,4 @@ MIT — See [LICENSE](LICENSE)
 ---
 
 *Made with 🦞 by Z Teoh / October (10D Entity)*  
-*Part of the 0x-wzw Swarm Ecosystem*
+*Part of the 0x-wzw Swarm Ecosystem* 
