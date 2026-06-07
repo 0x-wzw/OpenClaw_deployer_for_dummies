@@ -1,67 +1,65 @@
 # Version History
 
-## Current Version: 1.0.0
+## Current Version: 2.0.0
 
-**Release Date:** 2026-03-22
+**Release Date:** 2026-06-07
 
-### What's New in 1.0.0
+### What's New in 2.0.0
 
-- ✅ Initial release
-- ✅ Ollama-first setup (no API keys)
-- ✅ Automated installation script (`install.sh`)
-- ✅ Local model support (qwen2.5:3b, phi3)
-- ✅ Extension integration (SentientForge, SovereignStack, Swarm Agent Kit)
-- ✅ Version-controlled updates
-- ✅ Weekly update process
+- ✅ Updated README for latest OpenClaw (2026.6.1)
+- ✅ Strengthened `.gitignore` against credential leaks
+- ✅ Recommended modern local models (qwen2.5:7b, llama3.2:3b)
+- ✅ Added advanced config upgrade path
+- ✅ Updated template configs (`SOUL.md`, `AGENTS.md`, `USER.md`, `HEARTBEAT.md`)
+- ✅ Simplified update process
+- ✅ Fixed Ollama port typo in example config
 
 ---
 
 ## Changelog
 
+### 2.0.0 (2026-06-07)
+
+#### Added
+- Security section with credential management best practices
+- Advanced config upgrade path linking to companion repo
+- Lock-tight `.gitignore` covering `.env`, `*.key`, `*.pem`, secrets directories
+- Personality-rich `SOUL.md` template for single-agent-first workflows
+
+#### Changed
+- Recommended models: qwen2.5:7b (was 3b), llama3.2:3b (was phi3)
+- OpenClaw install instruction is now version-agnostic (`npm install -g openclaw`)
+- `UPDATE.md` simplified to a concise git-pull & check-VERSION.md process
+- Config templates refreshed with cleaner defaults
+
+#### Fixed
+- Ollama port `localhost:114114` → `localhost:11434` in example config
+
+#### Removed
+- Bloated weekly update process from `UPDATE.md`
+- Swarm Protocol references from template `AGENTS.md` (single-agent-first)
+
 ### 1.0.0 (2026-03-22)
 
 #### Added
-- Complete first-time setup guide
+- Initial release
+- Ollama-first setup (no API keys)
 - Automated installation script
-- Ollama integration
-- Local model configuration
-- Extension linking system
+- Local model support (qwen2.5:3b, phi3)
+- Extension integration
 - Version tracking
-- Update mechanism
-
-#### Changed
-- N/A (initial release)
-
-#### Deprecated
-- N/A (initial release)
-
-#### Removed
-- N/A (initial release)
-
-#### Fixed
-- N/A (initial release)
+- Weekly update process
 
 ---
 
 ## Update Instructions
 
-### Automatic Update
-
 ```bash
-# Pull latest changes
 git pull origin main
-
-# Run update script
-./update.sh
+cat VERSION.md    # review changes
 ```
 
-### Manual Update
-
-1. Check [VERSION.md](VERSION.md) for latest version
-2. Review [UPDATE.md](UPDATE.md) for changes
-3. Backup your config: `cp -r ~/.openclaw ~/.openclaw.backup`
-4. Apply updates per instructions in UPDATE.md
-5. Verify: `openclaw --version`
+See [UPDATE.md](UPDATE.md) for details.
 
 ---
 
@@ -77,34 +75,26 @@ We follow [Semantic Versioning](https://semver.org/):
 
 ## Roadmap
 
-### 1.1.0 (Planned)
-- [ ] Additional Ollama models (llama3, mistral)
+### 2.1.0 (Planned)
 - [ ] GPU acceleration guide
 - [ ] Docker deployment option
-- [ ] Windows support
+- [ ] Windows setup guide
+- [ ] Automated health check script
 
-### 1.2.0 (Planned)
-- [ ] Web UI for configuration
-- [ ] Plugin marketplace
-- [ ] Community skill sharing
-- [ ] Automated testing suite
-
-### 2.0.0 (Future)
-- [ ] Multi-instance federation
-- [ ] Cloud-native deployment
-- [ ] Enterprise features
+### 2.2.0 (Planned)
+- [ ] Web UI integration
+- [ ] Community skill templates
+- [ ] Testing suite
 
 ---
 
-## Contributing to Versions
+## Contributing
 
 1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/1.1.0-my-feature`
-3. Update VERSION.md with your changes
-4. Update CHANGELOG in UPDATE.md
-5. Submit a pull request
+2. Create a feature branch: `git checkout -b feature/my-change`
+3. Update `VERSION.md` with your changes
+4. Submit a pull request
 
 ---
 
-*Version tracking for OpenClaw Deployer for Dummies*  
-*Updated weekly — see UPDATE.md for process*
+*Version tracking for OpenClaw Deployer for Dummies*

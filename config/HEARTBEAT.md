@@ -1,22 +1,26 @@
 ---
 name: heartbeat-template
-version: 1.0.0
-description: "Autonomous maintenance schedule template."
+version: 2.0.0
+description: "Autonomous maintenance schedule — customize as needed."
 ---
 
-# HEARTBEAT.md - Autonomous Maintenance
+# HEARTBEAT.md — Autonomous Maintenance
 
 ## Schedule
 
-### Daily (03:00 UTC)
+### Daily
 - Check system health
-- Review memory logs
-- Archive old data
+- Review recent memory logs
 
-### Weekly (Sunday 04:00 UTC)
-- Security scan
-- Skill updates
+### Weekly
+- Security scan review
+- Skill updates (git pull)
 - Performance review
 
 ## Status Log
-[YYYY-MM-DD] Setup complete
+
+- [2026-06-07] v2.0.0 setup complete
+
+---
+
+*Adjust frequencies and tasks to match your usage patterns.*

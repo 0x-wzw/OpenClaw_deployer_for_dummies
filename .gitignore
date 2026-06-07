@@ -1,55 +1,43 @@
-# Secret Protection - never commit credentials
-credentials.json
-**/credentials.json
-**/credential*
-*.secret
+# 🔴 SECURITY — NEVER COMMIT CREDENTIALS
+.env
+.env.*
+!.env.example
 *.key
 *.pem
 *.p12
 *.pfx
-.env
-.env.*
-!.env.example
-!.env.template
-**/secrets/
-**/.secrets/
+*.token
+*.secret
+credentials/
+secrets/
+.vault
 
-# Python
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
-build/
-develop-eggs/
+# OpenClaw
+openclaw/
+logs/
+node_modules/
 dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Python artifacts
+__pycache__/
+*.pyc
+*.pyo
+build/
+dist/
 *.egg-info/
-.installed.cfg
-*.egg
 .venv/
 venv/
 
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-*~
-.DS_Store
-
-# Node
-node_modules/
-.npm
-
-# Logs
+# General
 *.log
-logs/
+.DS_Store

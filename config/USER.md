@@ -1,25 +1,33 @@
 ---
 name: user-template
-version: 1.0.0
-description: "User preferences and context template."
+version: 2.0.0
+description: "Fill in your preferences so your agent knows who you are."
 ---
 
-# USER.md - About Your Human
+# USER.md — About You
 
 ## Basic Info
+
 - **Name:** [Your name]
 - **Preferred name:** [What to call you]
-- **Timezone:** [Your timezone]
+- **Timezone:** [e.g., UTC, America/New_York, Asia/Tokyo]
 
-## Preferences
-- [Preference 1: e.g., Prefers concise answers]
-- [Preference 2: e.g., Wants direct answers first]
-- [Preference 3: e.g., Works in English/Other]
+## Communication Preferences
+
+- **Answer style:** [e.g., Concise / Detailed / Examples first]
+- **Tone:** [e.g., Professional / Casual / Humorous]
+- **Languages:** [e.g., English, Spanish, code-switching]
 
 ## Work Context
-- **Primary tools:** [Your tools]
-- **Focus areas:** [Your interests]
-- **Typical workflow:** [How you work]
+
+- **Primary tools:** [e.g., VS Code, Obsidian, Notion, terminal, etc.]
+- **Focus areas:** [e.g., AI, DevOps, research, creative writing]
+- **Typical workflow:** [How you usually work — solo, in meetings, late at night, etc.]
 
 ## Context
-[Any other context the agent should know]
+
+[Anything else your agent should know about you — quirks, pet peeves, goals, inside jokes, projects you're excited about.]
+
+---
+
+*The more you fill in here, the better your agent can adapt to you.*
