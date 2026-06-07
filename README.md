@@ -158,6 +158,13 @@ openclaw status
 
 ## Security
 
+### 🔐 Credential Management
+
+For production setups, DO NOT hardcode API keys in config files.
+Use `.env` (chmod 600) loaded via `EnvironmentFile=-` in systemd,
+or use the vault management pattern documented in the 
+[advanced-config repo](<https://github.com/0x-wzw/openclaw-advanced-config>).
+
 ### Credential Safety
 
 This guide is built around **zero external API keys**. Everything runs locally. That said:
